@@ -44,6 +44,7 @@
 <script>
 import { required, minLength } from 'vuelidate/lib/validators'
 import customValidator from '@/helper/validator'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'Login',
@@ -69,12 +70,27 @@ export default {
     }
   },
   methods: {
+    ...mapActions('userModule', { userLogin: 'login' }), // 别名
     validateState(name) {
       // 解构赋值
       const { $dirty, $error } = this.$v.user[name]
       return $dirty ? !$error : null
     },
     login() {
+      this.$v.user.$touch()
+      if (this.$v.user.$anyError) {
+        return
+      }
+      this.userLogin(this.user).then(() => {
+        this.$router.replace({ name: 'Home' })
+      }).catch((error) => {
+        console.log(error)
+        this.$bvToast.toast(error.response.data.msg, {
+          title: '数据验证错误!',
+          variant: 'danger',
+          solid: true
+        })
+      })
       console.log('login')
     }
   }
